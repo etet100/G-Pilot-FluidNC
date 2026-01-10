@@ -246,6 +246,8 @@ void protocol_main_loop() {
     // This is also where the system idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
     for (;; vTaskDelay(1)) {
+
+
         if (activeChannel) {
             // The input polling task has collected a line of input
             if (gcode_echo->get()) {

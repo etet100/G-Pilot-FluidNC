@@ -51,7 +51,7 @@ private:
     int32_t escaping;
     int32_t history_num = -1;
 
-    void emit(char c);
+    void emit_(char c);
 
     void echo_line();
     void addchar(char c, bool echo = true);

@@ -2,6 +2,8 @@
 // Copyright (c) 2018 -	Bart Dring
 // Use of this source code is governed by a GPLv3 license that can be found in the LICENSE file.
 
+#include <QString>
+
 #ifndef UNIT_TEST
 
 #    include "Main.h"
@@ -26,10 +28,30 @@
 
 extern void make_user_commands();
 
-void setup() {
+#include <QCoreApplication>
+
+void setup(QString serverName) {
     platform_preinit();
 
+    QLocalSocket* socket = new QLocalSocket();
+    socket->connectToServer(serverName);
+    if (!socket->waitForConnected(100)) {
+        qDebug() << "WinConsole: cannot connect to server " << serverName;
+
+        return;
+    }
+    qDebug() << "WinConsole: connected to server " << serverName;
+
     set_state(State::Starting);
+    winConsole.setSocket(socket);
+    // startupLog.setSocket(socket);
+
+    // while (true) {
+    //     if (winConsole.read() > 0) {
+    //         qDebug() << "WinConsole: socket has data available";
+    //     }
+    //     QCoreApplication::processEvents();
+    // }
 
     try {
         timing_init();

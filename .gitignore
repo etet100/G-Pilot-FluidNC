@@ -1,43 +1,84 @@
-.pioenvs/
-.pio/
-Thumbs.db
-.DS_Store
-*.orig
-embedded/node_modules
-embedded/dist
+# This file is used to ignore files which are generated
+# ----------------------------------------------------------------------------
+
 *~
-.pio/
-.vscode/
-.history/
-*.pyc
-.vs/
-Debug/
-Release/
-*.vsarduino.h
-__vm/
-*.user
-FluidNC.vcxproj
-FluidNC.vcxproj.filters
+*.autosave
+*.a
+*.core
+*.moc
+*.o
+*.obj
+*.orig
+*.rej
+*.so
+*.so.*
+*_pch.h.cpp
+*_resource.rc
+*.qm
+.#*
+*.*#
+core
+!core/
+tags
+.DS_Store
+.directory
+*.debug
+Makefile*
+*.prl
+*.app
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+Thumbs.db
+*.res
+*.rc
+/.qmake.cache
+/.qmake.stash
+
+# qtcreator generated files
+*.pro.user*
+*.qbs.user*
+CMakeLists.txt.user*
+
+# xemacs temporary files
+*.flc
+
+# Vim temporary files
+.*.swp
+
+# Visual Studio generated files
+*.ib_pdb_index
+*.idb
+*.ilk
+*.pdb
+*.sln
 *.suo
-packages/
-pio_machine.h
-platformio_override.ini
-project.checksum
-version.cpp
-esptool*.zip
-v*.zip
-/FluidNC/data/config.yaml
-build/
-dist/
-*.cppx
-*.hx
-/compile_commands.json
-data-wmb/
-*#
-/gcode_tests/venv
-release/
-managed_components/
-/FluidNC/lib/*/
-/FluidNC/dependencies.lock
-experiments/
-.cache
+*.vcproj
+*vcproj.*.*.user
+*.ncb
+*.sdf
+*.opensdf
+*.vcxproj
+*vcxproj.*
+
+# MinGW generated files
+*.Debug
+*.Release
+
+# Python byte code
+*.pyc
+
+# Binaries
+# --------
+*.dll
+*.exe
+
+# Directories with generated files
+.moc/
+.obj/
+.pch/
+.rcc/
+.uic/
+/build*/
+.pio
+.vscode

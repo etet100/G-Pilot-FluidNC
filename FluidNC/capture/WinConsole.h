@@ -1,16 +1,20 @@
 #pragma once
 
+#include <QString>
 #include "Channel.h"
 #include "lineedit.h"
+#include <QLocalSocket>
 
 class WinConsole : public Channel {
 private:
     Lineedit* _lineedit;
+    QLocalSocket *socket;
 
 public:
     WinConsole(bool addCR = false);
 
     void init() override;
+    void setSocket(QLocalSocket* socket_) { socket = socket_; }
 
     // Print methods (Stream inherits from Print)
     size_t write(uint8_t c) override;

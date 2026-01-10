@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
+#include <windows.h>
 
 // Capture here defines everything that we want to know. Specifically, we want to capture per ID:
 // 1. Timings. *When* did something happen?
@@ -66,9 +67,13 @@ public:
     }
 
     uint32_t current() { return currentTime; }
-    void     wait(uint32_t delay) { currentTime += delay; }
-    void     waitUntil(uint32_t value) {
+    void wait(uint32_t delay) {
+        Sleep(delay);
+        currentTime += delay;
+    }
+    void waitUntil(uint32_t value) {
         if (value > currentTime) {
+            Sleep(value - currentTime);
             currentTime = value;
         }
     }

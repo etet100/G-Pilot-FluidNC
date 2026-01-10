@@ -10,16 +10,16 @@ Lineedit::Lineedit(Print* _out, char* line, size_t linelen) : out(_out), needs_r
 
 #define CTRL(c) (c & 0x1f)
 
-void Lineedit::emit(char c) {
+void Lineedit::emit_(char c) {
     out->write(c);
 }
 
 void Lineedit::echo_line() {
     for (const char* p = startaddr; p < endaddr; ++p) {
-        emit(*p);
+        emit_(*p);
     }
     for (const char* p = endaddr; p > thisaddr; --p) {
-        emit('\b');
+        emit_('\b');
     }
 }
 
@@ -34,13 +34,13 @@ void Lineedit::addchar(char c, bool echo) {
         }
         *thisaddr++ = c;
         if (echo) {
-            emit(c);
+            emit_(c);
         }
         for (++p; p < endaddr; p++) {
-            emit(*p);
+            emit_(*p);
         }
         for (; p > thisaddr; --p) {
-            emit('\b');
+            emit_('\b');
         }
     }
 }
@@ -49,22 +49,22 @@ void Lineedit::erase_char() {
     if (thisaddr > startaddr) {
         --thisaddr;
         --endaddr;
-        emit('\b');
+        emit_('\b');
         char* p;
         for (p = thisaddr; p < endaddr; p++) {
             *p = *(p + 1);
-            emit(*p);
+            emit_(*p);
         }
-        emit(' ');
+        emit_(' ');
         for (++p; p > thisaddr; --p) {
-            emit('\b');
+            emit_('\b');
         }
     }
 }
 
 void Lineedit::erase_line() {
     for (; thisaddr < endaddr; ++thisaddr)
-        emit(*thisaddr);
+        emit_(*thisaddr);
     while (thisaddr > startaddr)
         erase_char();
     endaddr = startaddr;
@@ -191,14 +191,14 @@ bool Lineedit::get_history(uint32_t history_num) {
 
 void Lineedit::backward_char() {
     if (thisaddr > startaddr) {
-        emit('\b');
+        emit_('\b');
         --thisaddr;
     }
 }
 
 void Lineedit::forward_char() {
     if (thisaddr < endaddr) {
-        emit(*thisaddr);
+        emit_(*thisaddr);
         ++thisaddr;
     }
 }
@@ -210,17 +210,17 @@ bool Lineedit::is_word_delim(char c) {
 void Lineedit::forward_word() {
     // Skip delimiters that we are already on
     while ((thisaddr < endaddr) && is_word_delim(*thisaddr)) {
-        emit(*thisaddr);
+        emit_(*thisaddr);
         ++thisaddr;
     }
     // Find the next delimiter
     while ((thisaddr < endaddr) && !is_word_delim(*thisaddr)) {
-        emit(*thisaddr);
+        emit_(*thisaddr);
         ++thisaddr;
     }
     // Skip to the next non-delimiter
     while ((thisaddr < endaddr) && is_word_delim(*thisaddr)) {
-        emit(*thisaddr);
+        emit_(*thisaddr);
         ++thisaddr;
     }
 }
@@ -247,12 +247,12 @@ void Lineedit::backward_word() {
 
     // Skip over delimiters
     while ((thisaddr > startaddr) && is_word_delim(thisaddr[-1])) {
-        emit('\b');
+        emit_('\b');
         --thisaddr;
     }
     // Scan backward over non-delimiters
     while ((thisaddr > startaddr) && !is_word_delim(thisaddr[-1])) {
-        emit('\b');
+        emit_('\b');
         --thisaddr;
     }
 #if 0
@@ -282,7 +282,7 @@ bool Lineedit::find_word_under_cursor() {
     }
     // Move to the end of the item name
     while (thisaddr < endaddr && i < (100 - 1) && *thisaddr != '=') {
-        emit(*thisaddr);
+        emit_(*thisaddr);
         theWord[i++] = *thisaddr++;
     }
     theWord[i] = '\0';
@@ -292,12 +292,12 @@ bool Lineedit::find_word_under_cursor() {
 extern uint32_t num_initial_matches(const char* key, uint32_t keylen, uint32_t matchnum, char* matchname);
 
 void Lineedit::color(const char* s) {
-    emit(0x1b);
-    emit('[');
+    emit_(0x1b);
+    emit_('[');
     while (*s) {
-        emit(*s++);
+        emit_(*s++);
     }
-    emit('m');
+    emit_('m');
 }
 void Lineedit::cyan() {
     color("1;36;40");
@@ -376,12 +376,12 @@ void Lineedit::accept_word() {
     uint32_t len = strlen(theWord);
     uint32_t i;
     for (i = matchlen; i > len; --i) {
-        emit('\b');
+        emit_('\b');
         --thisaddr;
     }
     lowlight();
     while (i < matchlen) {
-        emit(*thisaddr++);
+        emit_(*thisaddr++);
         ++i;
     }
 }
@@ -396,13 +396,13 @@ void Lineedit::restart() {
 
 void Lineedit::show_realtime_command(const char* s) {
     if (startaddr < endaddr) {
-        emit('\n');
+        emit_('\n');
     }
     if (*s) {
         while (*s) {
-            emit(*s++);
+            emit_(*s++);
         }
-        emit('\n');
+        emit_('\n');
         echo_line();
     } else {
         needs_reecho = true;
@@ -585,7 +585,7 @@ bool Lineedit::step(int c) {
             break;
         case '\n':
         case '\r':
-            emit('\n');
+            emit_('\n');
             return true;
         case -1:
             return true;
