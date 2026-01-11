@@ -451,12 +451,15 @@ static Error renameObject(const char* fs, const char* parameter, AuthenticationL
     if (!parameter || *parameter == '\0') {
         return Error::InvalidValue;
     }
-    auto opath = strchr(parameter, '>');
-    if (*opath == '\0') {
+    char param_copy[256];
+    strncpy(param_copy, parameter, sizeof(param_copy) - 1);
+    param_copy[sizeof(param_copy) - 1] = '\0';
+    char* opath = strchr(param_copy, '>');
+    if (!opath) {
         return Error::InvalidValue;
     }
-    const char* ipath = parameter;
-    *opath++          = '\0';
+    *opath++ = '\0';
+    const char* ipath = param_copy;
     try {
         FluidPath inPath { ipath, fs };
         FluidPath outPath { opath, fs };

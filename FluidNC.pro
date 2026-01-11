@@ -294,11 +294,9 @@ INCLUDEPATH += FluidNC/capture
 INCLUDEPATH += FluidNC/src
 INCLUDEPATH += FluidNC/include
 
-# Default rules for deployment.
-unix {
-    target.path = /usr/lib
-}
-!isEmpty(target.path): INSTALLS += target
-
 LIBS += -lcomdlg32 -limagehlp
 
+win32 {
+    TARGET_DEST_DIR = $$clean_path($$OUT_PWD/../../gpilot)
+    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$shell_path($$OUT_PWD/FluidNC.dll) $$shell_path($$TARGET_DEST_DIR))
+}

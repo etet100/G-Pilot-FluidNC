@@ -147,7 +147,7 @@ void mc_arc(float*            target,
 
     auto n_axis = Axes::_numberAxis;
 
-    float previous_position[n_axis] = { 0.0f };
+    float previous_position[MAX_N_AXIS] = { 0.0f };
     for (size_t i = 0; i < n_axis; i++) {
         previous_position[i] = position[i];
     }

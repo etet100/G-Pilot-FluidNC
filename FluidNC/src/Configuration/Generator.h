@@ -42,7 +42,7 @@ namespace Configuration {
     public:
         Generator(Channel& dst, int_fast8_t indent = 0);
 
-        void send_item(const char* name, const std::string& value) {
+        void send_item(const char* name, const char* value) {
             LogStream s(dst_, "");
             lastIsNewline_ = false;
             for (int i = 0; i < indent_ * 2; ++i) {
@@ -52,13 +52,17 @@ namespace Configuration {
             s << ": ";
 
             // If value contains a colon, wrap text as string
-            if (value.find(':') == std::string::npos) {
+            if (strchr(value, ':')) {
+                s << "'";
                 s << value;
+                s << "'";
             } else {
-                s << "'";
                 s << value;
-                s << "'";
             }
+        }
+
+        void send_item(const char* name, const std::string& value) {
+            send_item(name, value.c_str());
         }
 
         void send_item(const char* name, char value) {
