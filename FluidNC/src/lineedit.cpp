@@ -414,7 +414,7 @@ void Lineedit::show_realtime_command(const char* s) {
 // cppcheck-suppress unusedFunction
 uint32_t Lineedit::finish() {
     uint32_t length = endaddr - startaddr;
-    add_to_history(startaddr, length);
+    // add_to_history(startaddr, length);
     restart();
     return (length);
 }

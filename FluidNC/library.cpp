@@ -4,6 +4,9 @@
 extern void setup(QString serverName);
 extern void loop();
 
+extern "C"
+{
+
 Q_DECL_EXPORT
 void FluidNC(QString serverName)
 {
@@ -11,4 +14,6 @@ void FluidNC(QString serverName)
     while (1) {
         loop();
     }
+}
+
 }
