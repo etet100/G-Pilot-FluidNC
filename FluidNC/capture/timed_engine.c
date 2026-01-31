@@ -82,12 +82,12 @@ void stepTimerInit(uint32_t frequency, bool (*fn)(void)) {
 void stepTimerStop() {
     if (timerRunning) {
         timerRunning = false;
+    }
 
-        if (timerThread != NULL) {
-            WaitForSingleObject(timerThread, 1000);
-            CloseHandle(timerThread);
-            timerThread = NULL;
-        }
+    if (timerThread != NULL) {
+        WaitForSingleObject(timerThread, 1000);
+        CloseHandle(timerThread);
+        timerThread = NULL;
     }
 }
 
