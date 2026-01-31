@@ -42,13 +42,11 @@ int WinConsole::read() {
     }
 
     if (!socket->isOpen()) {
-        qDebug() << "WinConsole::read(): socket not open";
+        qDebug() << "[IO][FluidNC][DLL] read - Socket not open";
     }
     if (!socket->isReadable()) {
-        qDebug() << "WinConsole::read(): socket not readable";
+        qDebug() << "[IO][FluidNC][DLL] read - socket not readable";
     }
-    // socket->write("ab\n");  // Trigger read
-    // delay_ms(400);
 
     socket->waitForReadyRead(0);
     if (!socket->bytesAvailable()) {
@@ -57,7 +55,6 @@ int WinConsole::read() {
 
     char c;
     socket->read(&c, 1);
-    qDebug() << c;
 
     return c;
 }

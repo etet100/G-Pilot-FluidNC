@@ -36,11 +36,11 @@ void setup(QString serverName) {
     QLocalSocket* socket = new QLocalSocket();
     socket->connectToServer(serverName);
     if (!socket->waitForConnected(100)) {
-        qDebug() << "WinConsole: cannot connect to server " << serverName;
+        qDebug() << "[IO][FluidNC][DLL] Cannot connect to server " << serverName;
 
         return;
     }
-    qDebug() << "WinConsole: connected to server " << serverName;
+    qDebug() << "[IO][FluidNC][DLL] WinConsole: Connected to server " << serverName;
 
     set_state(State::Starting);
     winConsole.setSocket(socket);
@@ -48,7 +48,7 @@ void setup(QString serverName) {
 
     // while (true) {
     //     if (winConsole.read() > 0) {
-    //         qDebug() << "WinConsole: socket has data available";
+    //         qDebug() << "[IO][FluidNC][DLL] Socket has data available";
     //     }
     //     QCoreApplication::processEvents();
     // }
