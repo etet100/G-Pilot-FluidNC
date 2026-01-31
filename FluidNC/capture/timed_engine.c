@@ -9,12 +9,120 @@
 #include "Driver/StepTimer.h"
 // #include <esp32-hal-gpio.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #define IRAM_ATTR
 
+#ifdef _WIN32
+#include <process.h>
+
+static HANDLE timerThread = NULL;
+static volatile bool timerRunning = false;
+static uint32_t timerTicks = 0;
+static uint32_t timerFrequency = 0;
+static bool (*timer_callback)(void) = NULL;
+static LARGE_INTEGER perfFrequency;
+static int64_t ticksPerCallback = 0;
+
+static unsigned int __stdcall timerThreadFunc(void* arg) {
+    LARGE_INTEGER nextTick, currentTick;
+    QueryPerformanceCounter(&nextTick);
+    nextTick.QuadPart += ticksPerCallback;
+
+    while (timerRunning) {
+        // Hybrid approach - sleep for most of the time, then wait for precision
+        LARGE_INTEGER now;
+        QueryPerformanceCounter(&now);
+        int64_t ticksRemaining = nextTick.QuadPart - now.QuadPart;
+
+        // For sleep calculation
+        int64_t usRemaining = (ticksRemaining * 1000000LL) / perfFrequency.QuadPart;
+
+        // More than 2ms remaining? sleep for part of it
+        if (usRemaining > 2000) {
+            Sleep((DWORD)((usRemaining - 1000) / 1000));
+        }
+
+        // Busy-wait for the last part for precision
+        do {
+            QueryPerformanceCounter(&currentTick);
+        } while (currentTick.QuadPart < nextTick.QuadPart && timerRunning);
+
+        if (timerRunning && timer_callback) {
+            if (timer_callback()) {
+                nextTick.QuadPart += ticksPerCallback;
+            } else {
+                timerRunning = false;
+            }
+        }
+    }
+
+    return 0;
+}
+
+void stepTimerInit(uint32_t frequency, bool (*fn)(void)) {
+    timer_callback = fn;
+    timerFrequency = frequency;
+
+    QueryPerformanceFrequency(&perfFrequency);
+
+    // Performance counter ticks per callback
+    ticksPerCallback = perfFrequency.QuadPart / frequency;
+    if (ticksPerCallback == 0) ticksPerCallback = 1;
+
+    // Set default ticks (will be updated by stepTimerSetTicks)
+    timerTicks = (uint32_t)ticksPerCallback;
+
+    // 1ms timer resolution
+    timeBeginPeriod(1);
+}
+
+void stepTimerStop() {
+    if (timerRunning) {
+        timerRunning = false;
+
+        if (timerThread != NULL) {
+            WaitForSingleObject(timerThread, 1000);
+            CloseHandle(timerThread);
+            timerThread = NULL;
+        }
+    }
+}
+
+void stepTimerSetTicks(uint32_t ticks) {
+    timerTicks = ticks;
+
+    // Update callback interval based on ticks
+    // ticks represents the alarm value in timer frequency units
+    if (timerFrequency > 0) {
+        ticksPerCallback = (perfFrequency.QuadPart * (int64_t)ticks) / (int64_t)timerFrequency;
+        if (ticksPerCallback == 0) {
+            ticksPerCallback = 1;
+        }
+    }
+}
+
+void stepTimerStart() {
+    // Make sure previous thread is cleaned up
+    stepTimerStop();
+
+    if (!timerRunning && timerThread == NULL) {
+        timerRunning = true;
+
+        // Create high-priority thread for timer
+        timerThread = (HANDLE)_beginthreadex(NULL, 0, timerThreadFunc, NULL, 0, NULL);
+    }
+}
+
+#else
+// Empty implementations for non-Windows platforms
 void stepTimerInit(uint32_t frequency, bool (*fn)(void)) {}
 void stepTimerStop() {}
 void stepTimerSetTicks(uint32_t ticks) {}
 void stepTimerStart() {}
+#endif
 
 static uint32_t _pulse_delay_us;
 static uint32_t _dir_delay_us;

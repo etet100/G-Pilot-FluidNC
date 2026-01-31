@@ -294,7 +294,7 @@ INCLUDEPATH += FluidNC/capture
 INCLUDEPATH += FluidNC/src
 INCLUDEPATH += FluidNC/include
 
-LIBS += -lcomdlg32 -limagehlp
+LIBS += -lcomdlg32 -limagehlp -lwinmm
 
 win32 {
     TARGET_DEST_DIR = $$clean_path($$OUT_PWD/../../gpilot)
