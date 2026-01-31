@@ -92,13 +92,11 @@ static void gpio_send_event(int32_t gpio_num, bool active) {
 void poll_gpios() {
     gpio_mask_t gpios_active  = get_gpios();
     gpio_mask_t gpios_changed = (gpios_active ^ gpios_current) & gpios_interest;
-    if (gpios_changed) {
-        int zeros;
-        while ((zeros = __builtin_clzll(gpios_changed)) != 64) {
-            int32_t gpio_num = 63 - zeros;
-            gpio_send_event(gpio_num, gpios_active & gpio_mask(gpio_num));
-            // Remove bit from mask so clzll will find the next one
-            gpios_update(gpios_changed, gpio_num, false);
-        }
+    while (gpios_changed) {
+        int zeros = __builtin_clzll(gpios_changed);
+        int32_t gpio_num = 63 - zeros;
+        gpio_send_event(gpio_num, gpios_active & gpio_mask(gpio_num));
+        // Remove bit from mask so clzll will find the next one
+        gpios_update(gpios_changed, gpio_num, false);
     }
 }
