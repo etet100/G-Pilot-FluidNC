@@ -35,7 +35,9 @@ static int32_t gpio_deltat_ticks[MAX_N_GPIO + 1]     = { 0 };
 static void gpio_set_rate_limit(int32_t gpio_num, uint32_t ms) {}
 
 static inline gpio_mask_t get_gpios() {
-    return ((uint64_t(0) << 32) | 0) ^ gpios_inverted;
+    // x = 17, y = 4, z = 16
+
+    return uint64_t(0xFFFFF) ^ gpios_inverted;
 }
 static gpio_mask_t gpio_mask(int32_t gpio_num) {
     return 1ULL << gpio_num;
@@ -70,7 +72,6 @@ void gpio_clear_event(int32_t gpio_num) {
 }
 
 static void gpio_send_event(int32_t gpio_num, bool active) {
-#if 0
     auto    end_ticks  = gpio_next_event_ticks[gpio_num];
     int32_t this_ticks = int32_t(xTaskGetTickCount());
     if (end_ticks == 0 || ((this_ticks - end_ticks) > 0)) {
@@ -86,11 +87,22 @@ static void gpio_send_event(int32_t gpio_num, bool active) {
         }
         gpios_update(gpios_current, gpio_num, active);
     }
-#endif
 }
 
 void poll_gpios() {
     gpio_mask_t gpios_active  = get_gpios();
+    gpio_mask_t gpios_changed = (gpios_active ^ gpios_current) & gpios_interest;
+    while (gpios_changed) {
+        int zeros = __builtin_clzll(gpios_changed);
+        int32_t gpio_num = 63 - zeros;
+        gpio_send_event(gpio_num, gpios_active & gpio_mask(gpio_num));
+        // Remove bit from mask so clzll will find the next one
+        gpios_update(gpios_changed, gpio_num, false);
+    }
+}
+
+void gpilot_poll_gpios(uint64_t gpios_active) {
+    gpios_active ^= gpios_inverted;
     gpio_mask_t gpios_changed = (gpios_active ^ gpios_current) & gpios_interest;
     while (gpios_changed) {
         int zeros = __builtin_clzll(gpios_changed);

@@ -19,6 +19,7 @@
 #include <process.h>
 
 static HANDLE timerThread = NULL;
+static HANDLE stopEvent = NULL;
 static volatile bool timerRunning = false;
 static uint32_t timerTicks = 0;
 static uint32_t timerFrequency = 0;
@@ -42,11 +43,17 @@ static unsigned int __stdcall timerThreadFunc(void* arg) {
 
         // More than 2ms remaining? sleep for part of it
         if (usRemaining > 2000) {
-            Sleep((DWORD)((usRemaining - 1000) / 1000));
+            DWORD waitTime = (DWORD)((usRemaining - 1000) / 1000);
+            if (WaitForSingleObject(stopEvent, waitTime) == WAIT_OBJECT_0) {
+                ResetEvent(stopEvent);
+                timerRunning = false;
+                return 0;
+            }
         }
 
         // Busy-wait for the last part for precision
         do {
+            if (!timerRunning) break;
             QueryPerformanceCounter(&currentTick);
         } while (currentTick.QuadPart < nextTick.QuadPart && timerRunning);
 
@@ -54,7 +61,9 @@ static unsigned int __stdcall timerThreadFunc(void* arg) {
             if (timer_callback()) {
                 nextTick.QuadPart += ticksPerCallback;
             } else {
+                ResetEvent(stopEvent);
                 timerRunning = false;
+                return 0;
             }
         }
     }
@@ -68,9 +77,15 @@ void stepTimerInit(uint32_t frequency, bool (*fn)(void)) {
 
     QueryPerformanceFrequency(&perfFrequency);
 
+    if (stopEvent == NULL) {
+        stopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    }
+
     // Performance counter ticks per callback
     ticksPerCallback = perfFrequency.QuadPart / frequency;
-    if (ticksPerCallback == 0) ticksPerCallback = 1;
+    if (ticksPerCallback == 0) {
+        ticksPerCallback = 1;
+    }
 
     // Set default ticks (will be updated by stepTimerSetTicks)
     timerTicks = (uint32_t)ticksPerCallback;
@@ -80,15 +95,21 @@ void stepTimerInit(uint32_t frequency, bool (*fn)(void)) {
 }
 
 void stepTimerStop() {
-    if (timerRunning) {
-        timerRunning = false;
+    if (stopEvent != NULL) {
+        SetEvent(stopEvent);
     }
 
     if (timerThread != NULL) {
-        WaitForSingleObject(timerThread, 1000);
+        WaitForSingleObject(timerThread, 5000);
         CloseHandle(timerThread);
         timerThread = NULL;
     }
+
+    if (stopEvent != NULL) {
+        ResetEvent(stopEvent);
+    }
+
+    timerRunning = false;
 }
 
 void stepTimerSetTicks(uint32_t ticks) {
@@ -105,15 +126,18 @@ void stepTimerSetTicks(uint32_t ticks) {
 }
 
 void stepTimerStart() {
+    // If timer is already running, don't start it again
+    // if (timerRunning && timerThread != NULL) {
+    //     return;
+    // }
+
     // Make sure previous thread is cleaned up
     stepTimerStop();
 
-    if (!timerRunning && timerThread == NULL) {
-        timerRunning = true;
+    timerRunning = true;
 
-        // Create high-priority thread for timer
-        timerThread = (HANDLE)_beginthreadex(NULL, 0, timerThreadFunc, NULL, 0, NULL);
-    }
+    // Create high-priority thread for timer
+    timerThread = (HANDLE)_beginthreadex(NULL, 0, timerThreadFunc, NULL, 0, NULL);
 }
 
 #else
@@ -178,9 +202,9 @@ static void IRAM_ATTR start_timer() {
     stepTimerStart();
 }
 
-static void IRAM_ATTR stop_timer() {
-    stepTimerStop();
-}
+// static void IRAM_ATTR stop_timer() {
+//     stepTimerStop();
+// }
 
 // clang-format off
 static step_engine_t engine = {
@@ -196,8 +220,8 @@ static step_engine_t engine = {
     finish_unstep,
     max_pulses_per_sec,
     set_timer_ticks,
-    start_timer,
-    stop_timer
+    start_timer
+    // stop_timer
 };
 
 REGISTER_STEP_ENGINE(Timed, &engine);

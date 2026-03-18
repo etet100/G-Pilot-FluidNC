@@ -13,6 +13,7 @@ public:
     virtual ~StartupLog();
 
     void setSocket(QLocalSocket* socket_) { socket = socket_; }
+    void setControlSocket(QLocalSocket* socket_) { controlSocket = socket_; }
 
     size_t write(uint8_t data) override;
 
@@ -20,6 +21,7 @@ public:
 
 private:
     QLocalSocket* socket;
+    QLocalSocket* controlSocket;
 };
 
 extern StartupLog startupLog;

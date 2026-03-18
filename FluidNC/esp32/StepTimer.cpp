@@ -50,10 +50,10 @@ void IRAM_ATTR stepTimerSetTicks(uint32_t ticks) {
     }
 }
 
-void IRAM_ATTR stepTimerStop() {
-    timer_ll_set_counter_enable(&TIMERG0, TIMER_0, false);
-    timer_ll_set_alarm_enable(&TIMERG0, TIMER_0, false);
-}
+// void IRAM_ATTR stepTimerStop() {
+//     timer_ll_set_counter_enable(&TIMERG0, TIMER_0, false);
+//     timer_ll_set_alarm_enable(&TIMERG0, TIMER_0, false);
+// }
 
 void stepTimerInit(uint32_t frequency, bool (*callback)(void)) {
     timer_ll_intr_disable(&TIMERG0, TIMER_0);

@@ -8,6 +8,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include "State.h"
+#include <QDebug>
 
 class Channel;
 
@@ -71,13 +72,13 @@ extern bool atMsgLevel(MsgLevel level);
 
 // #define log_bare(prefix, x) { LogStream ss(prefix); ss << x; }
 #define log_msg(x) { LogStream ss(MsgLevelNone, "[MSG:"); ss << x; }
-#define log_verbose(x) if (atMsgLevel(MsgLevelVerbose)) { LogStream ss(MsgLevelVerbose, "[MSG:VRB: "); ss << x; }
-#define log_debug(x) if (atMsgLevel(MsgLevelDebug)) { LogStream ss(MsgLevelDebug, "[MSG:DBG: "); ss << x; }
-#define log_info(x) if (atMsgLevel(MsgLevelInfo)) { LogStream ss(MsgLevelInfo, "[MSG:INFO: "); ss << x; }
-#define log_warn(x) if (atMsgLevel(MsgLevelWarning)) { LogStream ss(MsgLevelWarning, "[MSG:WARN: "); ss << x; }
-#define log_error(x) if (atMsgLevel(MsgLevelError)) { LogStream ss(MsgLevelError, "[MSG:ERR: "); ss << x; }
-#define log_config_error(x) if (atMsgLevel(MsgLevelError)) { LogStream ss(MsgLevelError, "[MSG:ERR: "); ss << x; set_state(State::ConfigAlarm); }
-#define log_fatal(x) { LogStream ss(MsgLevelNone, "[MSG:FATAL: "); ss << x;  Assert(false, "A fatal error occurred"); }
+#define log_verbose(x) if (atMsgLevel(MsgLevelVerbose)) { LogStream ss(MsgLevelVerbose, "[MSG:VRB: "); ss << x; qDebug() << "[MSG:VRB: " << x; }
+#define log_debug(x) if (atMsgLevel(MsgLevelDebug)) { LogStream ss(MsgLevelDebug, "[MSG:DBG: "); ss << x; qDebug() << "[MSG:DBG: " << x; }
+#define log_info(x) if (atMsgLevel(MsgLevelInfo)) { LogStream ss(MsgLevelInfo, "[MSG:INFO: "); ss << x; qDebug() << "[MSG:INFO: " << x; }
+#define log_warn(x) if (atMsgLevel(MsgLevelWarning)) { LogStream ss(MsgLevelWarning, "[MSG:WARN: "); ss << x; qDebug() << "[MSG:WARN: " << x; }
+#define log_error(x) if (atMsgLevel(MsgLevelError)) { LogStream ss(MsgLevelError, "[MSG:ERR: "); ss << x; qDebug() << "[MSG:ERR: " << x; }
+#define log_config_error(x) if (atMsgLevel(MsgLevelError)) { LogStream ss(MsgLevelError, "[MSG:ERR: "); ss << x; set_state(State::ConfigAlarm); qDebug() << "[MSG:ERR: " << x; }
+#define log_fatal(x) { LogStream ss(MsgLevelNone, "[MSG:FATAL: "); ss << x;  Assert(false, "A fatal error occurred"); qDebug() << "[MSG:FATAL: " << x; }
 
 #define log_msg_to(out, x) { LogStream ss(out, MsgLevelNone, "[MSG:"); ss << x; }
 #define log_verbose_to(out, x) if (atMsgLevel(MsgLevelVerbose)) { LogStream ss(out, MsgLevelVerbose, "[MSG:VRB: "); ss << x; }

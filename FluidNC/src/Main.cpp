@@ -33,17 +33,28 @@ extern void make_user_commands();
 void setup(QString serverName) {
     platform_preinit();
 
-    QLocalSocket* socket = new QLocalSocket();
-    socket->connectToServer(serverName);
-    if (!socket->waitForConnected(100)) {
+    QLocalSocket* mainSocket = new QLocalSocket();
+    mainSocket->connectToServer(serverName);
+    if (!mainSocket->waitForConnected(100)) {
         qDebug() << "[IO][FluidNC][DLL] Cannot connect to server " << serverName;
 
         return;
     }
     qDebug() << "[IO][FluidNC][DLL] WinConsole: Connected to server " << serverName;
 
+    QLocalSocket* controlSocket = new QLocalSocket();
+    controlSocket->connectToServer(serverName);
+    if (!controlSocket->waitForConnected(100)) {
+        qDebug() << "[IO][FluidNC][DLL] Cannot connect to server " << serverName;
+
+        return;
+    }
+
+    qDebug() << "[IO][FluidNC][DLL] Control: Connected to server " << serverName;
+
     set_state(State::Starting);
-    winConsole.setSocket(socket);
+    winConsole.setSocket(mainSocket);
+    winConsole.setControlSocket(controlSocket);
     // startupLog.setSocket(socket);
 
     // while (true) {
@@ -181,7 +192,8 @@ void setup(QString serverName) {
         log_config_error("Critical error in main_init: " << ex.what());
     }
 
-    poll_gpios();  // Initial poll to send events for initial pin states
+    gpilot_poll_gpios(0);
+    // poll_gpios();  // Initial poll to send events for initial pin states
 
     allChannels.ready();
     allChannels.deregistration(&startupLog);

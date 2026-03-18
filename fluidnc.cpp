@@ -1,8 +1,6 @@
 #include "fluidnc.h"
 #include <QApplication>
 #include <QThread>
-#include <QLocalSocket>
-#include <QLocalServer>
 #include <QUuid>
 #include "FluidNC/virtualucncconnection.h"
 #include "FluidNC/app.h"

@@ -30,8 +30,6 @@ namespace Machine {
         static motor_pins_t* axis_motors[MAX_N_AXIS][MAX_MOTORS_PER_AXIS];
         static axis_t        _n_active_axes;
 
-        static void    startPulseTimer();
-        static void    waitDirection();  // Wait for direction delay
         static steps_t axis_steps[MAX_N_AXIS];
 
         static step_engine_t* step_engine;
@@ -93,7 +91,7 @@ namespace Machine {
         // Timers
         static void setTimerPeriod(uint32_t timerTicks);
         static void startTimer();
-        static void stopTimer();
+        // static void stopTimer();
 
         // Configuration system helpers:
         void group(Configuration::HandlerBase& handler) override;

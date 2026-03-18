@@ -7,8 +7,17 @@
 #include "Driver/Console.h"
 #include "WinConsole.h"
 
+// @GPILOT
 #include <QDebug>
+#include <QtCore>
 #include <QCoreApplication>
+
+void gpilotLockProbeAtCurrentPosition(void);
+void gpilotResetProbePosition(void);
+void gpilotSetHome(bool abs, double x, double y, double z);
+void gpilotSetSingleLimit(int axis, double pos);
+void gpilotEstop();
+// @GPILOT
 
 extern void cleanupThreads();
 
@@ -36,7 +45,7 @@ int WinConsole::available(void) {
 
 int WinConsole::read() {
     static uint32_t tick = 0;
-    if (tick++ > 10000) {
+    if (tick++ > 1000) {
         tick = 0;
         QCoreApplication::processEvents();
     }
@@ -47,6 +56,56 @@ int WinConsole::read() {
     if (!socket->isReadable()) {
         qDebug() << "[IO][FluidNC][DLL] read - socket not readable";
     }
+    if (!controlSocket->isOpen()) {
+        qDebug() << "[IO][FluidNC][DLL] read - Control socket not open";
+    }
+    if (!controlSocket->isReadable()) {
+        qDebug() << "[IO][FluidNC][DLL] read - Control socket not readable";
+    }
+
+    // @GPilot
+    static QString ctrlBuffer = "";
+    controlSocket->waitForReadyRead(0);
+    if (controlSocket->bytesAvailable()) {
+        ctrlBuffer += controlSocket->readAll();
+
+        int pos;
+        while ((pos = ctrlBuffer.indexOf("\n")) != -1) {
+            QString line = ctrlBuffer.left(pos).trimmed();
+            ctrlBuffer = ctrlBuffer.mid(pos + 1);
+
+            qDebug() << "[uCNC] Received:" << line;
+
+            // Process control commands here
+            QJsonDocument doc = QJsonDocument::fromJson(line.toUtf8());
+            if (!doc.isNull() && doc.isObject()) {
+                QJsonObject obj = doc.object();
+                QString cmd = obj["cmd"].toString();
+
+                if (cmd == "probe_at_current") {
+                    gpilotLockProbeAtCurrentPosition();
+                } else if (cmd == "reset_probe") {
+                    gpilotResetProbePosition();
+                } else if (cmd == "set_home") {
+                    gpilotSetHome(
+                        obj["abs"].toBool(),
+                        obj["x"].toDouble(),
+                        obj["y"].toDouble(),
+                        obj["z"].toDouble()
+                    );
+                } else if (cmd == "set_single_limit") {
+                    //{\"axis\":2,\"cmd\":\"set_single_limit\",\"pos\":25}"
+                    gpilotSetSingleLimit(
+                        obj["axis"].toInt(),
+                        obj["pos"].toDouble()
+                    );
+                } else if (cmd == "estop") {
+                    gpilotEstop();
+                }
+            }
+        }
+    }
+    // @GPilot
 
     socket->waitForReadyRead(0);
     if (!socket->bytesAvailable()) {
@@ -56,7 +115,7 @@ int WinConsole::read() {
     char c;
     socket->read(&c, 1);
 
-    return c;
+    return (unsigned char) c;
 }
 
 void WinConsole::init() {

@@ -4,6 +4,7 @@
 #include "Machine/MachineConfig.h"  // config
 
 #include <atomic>
+#include <QDebug>
 
 step_engine_t* step_engines = NULL;  // Linked list of stepping engines
 
@@ -199,13 +200,15 @@ void IRAM_ATTR Stepping::setTimerPeriod(uint32_t ticks) {
 
 // Called only from Stepper::wake_up which is not used in ISR context
 void Stepping::startTimer() {
+    qDebug() << "Starting stepper timer";
     step_engine->start_timer();
 }
 
 // Called only from Stepper::stop_stepping, used in both ISR and foreground contexts
-void IRAM_ATTR Stepping::stopTimer() {
-    step_engine->stop_timer();
-}
+// void IRAM_ATTR Stepping::stopTimer() {
+//     qDebug() << "Stopping stepper timer";
+//     step_engine->stop_timer();
+// }
 
 void Stepping::group(Configuration::HandlerBase& handler) {
     handler.item("engine", _engine, stepTypes);

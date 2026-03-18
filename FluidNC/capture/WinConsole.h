@@ -9,12 +9,14 @@ class WinConsole : public Channel {
 private:
     Lineedit* _lineedit;
     QLocalSocket *socket;
+    QLocalSocket *controlSocket;
 
 public:
     WinConsole(bool addCR = false);
 
     void init() override;
     void setSocket(QLocalSocket* socket_) { socket = socket_; }
+    void setControlSocket(QLocalSocket* controlSocket_) { controlSocket = controlSocket_; }
 
     // Print methods (Stream inherits from Print)
     size_t write(uint8_t c) override;

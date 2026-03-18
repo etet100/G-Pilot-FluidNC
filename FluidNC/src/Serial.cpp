@@ -214,8 +214,72 @@ Channel* AllChannels::poll(char* line) {
 
 AllChannels allChannels;
 
+// @GPILOT
+extern uint8_t gpilotVirtualInputs;
+
+float gpilotProbePos = -500.0f;
+float gpilotHomePos[3] = {-5.0f, -5.0f, 10.0f};
+
+void gpilotLockProbeAtCurrentPosition(void) {
+    float* print_position = state_is(State::Homing) ? get_motor_pos() : get_mpos();
+    gpilotProbePos = print_position[2];
+}
+
+void gpilotResetProbePosition(void) {
+    gpilotProbePos = -500.0f;
+}
+
+void gpilotSetHome(bool abs, double x, double y, double z) {
+    if (abs) {
+        gpilotHomePos[0] = x;
+        gpilotHomePos[1] = y;
+        gpilotHomePos[2] = z;
+    } else {
+        float* print_position = state_is(State::Homing) ? get_motor_pos() : get_mpos();
+        gpilotHomePos[0] = print_position[0] + x;
+        gpilotHomePos[1] = print_position[1] + y;
+        gpilotHomePos[2] = print_position[2] + z;
+    }
+}
+
+void gpilotSetSingleLimit(int axis, double pos) {
+    if (axis == -2) {
+        gpilotProbePos = pos;
+    } else if (axis < 3) {
+        gpilotHomePos[axis] = pos;
+    }
+}
+
+void gpilotEstop(void) {
+    // find a way to trigger the ESTOP
+}
+// @GPILOT
+
 Channel* pollChannels(char* line) {
-    poll_gpios();
+    // poll_gpios();
+
+    uint64_t gpios_active = 0;
+
+    float* print_position = state_is(State::Homing) ? get_motor_pos() : get_mpos();
+    auto n_axis = Axes::_numberAxis;
+    if (n_axis > Z_AXIS) {
+        if (print_position[0] < gpilotHomePos[0]) { // X
+            gpios_active |= (1ULL << 17); // X is GPIO 17
+        }
+        if (print_position[1] < gpilotHomePos[1]) { // Y
+            gpios_active |= (1ULL << 4);
+        }
+        if (print_position[2] > gpilotHomePos[2]) { // Z
+            gpios_active |= (1ULL << 16);
+        }
+    }
+
+    if (gpios_active != 0) {
+        gpios_active |= (1ULL << 1);
+    }
+
+    gpilot_poll_gpios(gpios_active);
+
     // Throttle polling when we are not ready for a line, thus preventing
     // planner buffer starvation due to not calling Stepper::prep_buffer()
     // frequently enough, which is normally called periodically at the end

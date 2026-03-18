@@ -6,13 +6,16 @@
 #include "Serial.h"
 #include "SettingsDefinitions.h"
 #include "Channel.h"
+#include <QDebug>
+#include <QString>
 
 const EnumItem messageLevels2[] = { { MsgLevelNone, "None" }, { MsgLevelError, "Error" }, { MsgLevelWarning, "Warn" },
                                     { MsgLevelInfo, "Info" }, { MsgLevelDebug, "Debug" }, { MsgLevelVerbose, "Verbose" },
                                     EnumItem(MsgLevelNone) };
 
 bool atMsgLevel(MsgLevel level) {
-    return message_level == nullptr || message_level->get() >= level;
+    return true;
+        // message_level == nullptr || message_level->get() >= level;
 }
 
 LogStream::LogStream(Channel& channel, MsgLevel level) : _channel(channel), _level(level) {

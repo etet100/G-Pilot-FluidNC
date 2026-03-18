@@ -25,6 +25,7 @@ void gpio_route(pinnum_t pin, uint32_t signal);
 void gpio_set_event(int32_t gpio_num, void* arg, bool invert);
 void gpio_clear_event(int32_t gpio_num);
 void poll_gpios();
+void gpilot_poll_gpios(uint64_t gpios_active);
 
 #ifdef __cplusplus
 }
