@@ -202,9 +202,9 @@ static void IRAM_ATTR start_timer() {
     stepTimerStart();
 }
 
-// static void IRAM_ATTR stop_timer() {
-//     stepTimerStop();
-// }
+static void IRAM_ATTR stop_timer() {
+    stepTimerStop();
+}
 
 // clang-format off
 static step_engine_t engine = {
@@ -220,8 +220,8 @@ static step_engine_t engine = {
     finish_unstep,
     max_pulses_per_sec,
     set_timer_ticks,
-    start_timer
-    // stop_timer
+    start_timer,
+    stop_timer
 };
 
 REGISTER_STEP_ENGINE(Timed, &engine);

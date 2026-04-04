@@ -5,6 +5,14 @@
 
 void vTaskDelay(const TickType_t xTicksToDelay);
 
+// Signals all FreeRTOS task threads to exit and waits for them to finish.
+// Must be called before unloading the DLL to prevent dangling thread callbacks.
+void gpilot_shutdown_tasks();
+
+// Throws GpilotShutdown if a shutdown has been requested.
+// Call this from blocking stubs (e.g. queue receive) so tasks unwind promptly.
+void gpilot_check_shutdown();
+
 #define CONFIG_ARDUINO_RUNNING_CORE 0
 
 BaseType_t xTaskCreatePinnedToCore(TaskFunction_t      pvTaskCode,

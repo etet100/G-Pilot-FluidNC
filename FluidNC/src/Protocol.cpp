@@ -10,6 +10,9 @@
 #include "Protocol.h"
 #include "Event.h"
 
+#include <QAtomicInt>
+extern QAtomicInt* gpilotStopFlag;
+
 #include "Machine/MachineConfig.h"
 #include "Machine/Homing.h"
 #include "Report.h"               // report_feedback_message
@@ -100,6 +103,9 @@ void drain_messages() {
 
 void output_loop(void* unused) {
     while (true) {
+        if (gpilotStopFlag && gpilotStopFlag->loadRelaxed() == 2) {
+            return;
+        }
         // Block until a message is received
         LogMessage message;
         if (xQueueReceive(message_queue, &message, portMAX_DELAY)) {
@@ -127,6 +133,9 @@ void polling_loop(void* unused) {
 
     // Poll the input sources waiting for a complete line to arrive
     for (; true; /*feedLoopWDT(), */ vTaskDelay(1)) {
+        if (gpilotStopFlag && gpilotStopFlag->loadRelaxed() == 2) {
+            return;
+        }
         // Polling is paused when xmodem is using a channel for binary upload
         if (pollingPaused) {
             vTaskDelay(100);
@@ -246,7 +255,9 @@ void protocol_main_loop() {
     // This is also where the system idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
     for (;; vTaskDelay(1)) {
-
+        if (gpilotStopFlag && gpilotStopFlag->loadRelaxed() == 2) {
+            return;
+        }
 
         if (activeChannel) {
             // The input polling task has collected a line of input

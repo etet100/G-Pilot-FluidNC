@@ -91,7 +91,7 @@ namespace Machine {
         // Timers
         static void setTimerPeriod(uint32_t timerTicks);
         static void startTimer();
-        // static void stopTimer();
+        static void stopTimer();
 
         // Configuration system helpers:
         void group(Configuration::HandlerBase& handler) override;

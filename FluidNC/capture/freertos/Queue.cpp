@@ -5,6 +5,8 @@
 #include <vector>
 #include <mutex>
 
+extern void gpilot_check_shutdown();
+
 QueueHandle_t xQueueGenericCreate(const UBaseType_t uxQueueLength, const UBaseType_t uxItemSize, const uint8_t ucQueueType /* =0 */) {
     auto ptr         = new QueueHandle();
     ptr->entrySize   = uxItemSize;
@@ -27,6 +29,9 @@ BaseType_t xQueueGenericReceive(QueueHandle_t xQueue, void* const pvBuffer, Tick
 
         return pdTRUE;
     } else {
+        // Queue is empty — check if shutdown was requested so the calling task
+        // unwinds via FluidNCShutdown instead of spinning forever.
+        gpilot_check_shutdown();
         return errQUEUE_FULL;  // no receive
     }
 }

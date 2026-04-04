@@ -205,10 +205,10 @@ void Stepping::startTimer() {
 }
 
 // Called only from Stepper::stop_stepping, used in both ISR and foreground contexts
-// void IRAM_ATTR Stepping::stopTimer() {
-//     qDebug() << "Stopping stepper timer";
-//     step_engine->stop_timer();
-// }
+void IRAM_ATTR Stepping::stopTimer() {
+    qDebug() << "Stopping stepper timer";
+    step_engine->stop_timer();
+}
 
 void Stepping::group(Configuration::HandlerBase& handler) {
     handler.item("engine", _engine, stepTypes);

@@ -106,6 +106,7 @@ SOURCES += \
     FluidNC/src/Main.cpp \
     FluidNC/src/MotionControl.cpp \
     FluidNC/src/Motors/MotorDriver.cpp \
+    FluidNC/src/Motors/NullMotor.cpp \
     FluidNC/src/Motors/StandardStepper.cpp \
     FluidNC/src/Motors/StepStick.cpp \
     FluidNC/src/NutsBolts.cpp \
@@ -229,6 +230,7 @@ HEADERS += \
     FluidNC/src/Main.h \
     FluidNC/src/MotionControl.h \
     FluidNC/src/Motors/MotorDriver.h \
+    FluidNC/src/Motors/NullMotor.h \
     FluidNC/src/Motors/StandardStepper.h \
     FluidNC/src/Motors/StepStick.h \
     FluidNC/src/NutsBolts.h \
@@ -301,3 +303,5 @@ win32 {
     # Quotes around paths to prevent forward slashes from being interpreted as switches by cmd/copy
     QMAKE_POST_LINK += $$quote(cmd /c copy /y \"$$shell_path($$OUT_PWD/FluidNC.dll)\" \"$$shell_path($$TARGET_DEST_DIR)\")
 }
+
+DESTDIR = $$OUT_PWD/../../gpilot

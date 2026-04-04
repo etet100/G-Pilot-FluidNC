@@ -55,12 +55,18 @@
 #include <algorithm>
 #include <freertos/task.h>  // portMUX_TYPE, TaskHandle_T
 
+#include <QAtomicInt>
+extern QAtomicInt* gpilotStopFlag;
+
 std::mutex AllChannels::_mutex_general;
 std::mutex AllChannels::_mutex_pollLine;
 
 void heapCheckTask(void* pvParameters) {
     static uint32_t heapSize = 0;
     while (true) {
+        if (gpilotStopFlag && gpilotStopFlag->loadRelaxed() == 2) {
+            return;
+        }
         std::atomic_thread_fence(std::memory_order_seq_cst);  // read fence for settings and whatnot
         uint32_t newHeapSize = xPortGetFreeHeapSize();
         if (newHeapSize != heapSize) {
@@ -217,8 +223,8 @@ AllChannels allChannels;
 // @GPILOT
 extern uint8_t gpilotVirtualInputs;
 
-float gpilotProbePos = -500.0f;
-float gpilotHomePos[3] = {-5.0f, -5.0f, 10.0f};
+volatile float gpilotProbePos = -2.0f;
+volatile float gpilotHomePos[3] = {-5.0f, -5.0f, 10.0f};
 
 void gpilotLockProbeAtCurrentPosition(void) {
     float* print_position = state_is(State::Homing) ? get_motor_pos() : get_mpos();
@@ -251,7 +257,7 @@ void gpilotSetSingleLimit(int axis, double pos) {
 }
 
 void gpilotEstop(void) {
-    // find a way to trigger the ESTOP
+    send_alarm(ExecAlarm::HardStop);
 }
 // @GPILOT
 
@@ -263,14 +269,17 @@ Channel* pollChannels(char* line) {
     float* print_position = state_is(State::Homing) ? get_motor_pos() : get_mpos();
     auto n_axis = Axes::_numberAxis;
     if (n_axis > Z_AXIS) {
-        if (print_position[0] < gpilotHomePos[0]) { // X
+        if (print_position[0] <= gpilotHomePos[0]) { // X
             gpios_active |= (1ULL << 17); // X is GPIO 17
         }
-        if (print_position[1] < gpilotHomePos[1]) { // Y
+        if (print_position[1] <= gpilotHomePos[1]) { // Y
             gpios_active |= (1ULL << 4);
         }
-        if (print_position[2] > gpilotHomePos[2]) { // Z
+        if (print_position[2] >= gpilotHomePos[2]) { // Z
             gpios_active |= (1ULL << 16);
+        }
+        if (print_position[2] <= gpilotProbePos) { // Probe
+            gpios_active |= (1ULL << 2);
         }
     }
 
